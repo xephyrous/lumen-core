@@ -1,6 +1,5 @@
 package org.xephyrous.lumen.storage
 
-import org.xephyrous.lumen.io.ImageLoader
 import org.xephyrous.lumen.io.ImageLoader.SupportedImageType
 import org.xephyrous.lumen.views.ImageDataView
 import java.awt.Color
@@ -23,9 +22,9 @@ class ImageData(image: BufferedImage, val extension: SupportedImageType) {
     val width: Int = image.width
     val height: Int = image.height
 
-    init { // TODO : Allow variable image file type
+    init {
         val stream = ByteArrayOutputStream()
-        ImageIO.write(image, "png", stream)
+        ImageIO.write(image, extension.base, stream)
         _data = stream.toByteArray()
     }
 
@@ -37,11 +36,11 @@ class ImageData(image: BufferedImage, val extension: SupportedImageType) {
      * @return The index of the pixel at the coordinates ([x], [y])
      */
     fun indexOf(x: Int, y: Int): Int {
-        if (x !in 0..image.width || y !in 0..image.height) {
+        if (x !in 0..width || y !in 0..height) {
             throw IndexOutOfBoundsException("Invalid position in image!")
         }
 
-        return (image.width * y + x)
+        return (width * y + x)
     }
 
     /**

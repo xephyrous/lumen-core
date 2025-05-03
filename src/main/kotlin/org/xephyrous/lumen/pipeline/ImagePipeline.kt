@@ -12,13 +12,15 @@ import org.xephyrous.lumen.storage.Mask
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
+import javax.imageio.ImageIO
 
 /**
  *
  */
 enum class PipelineErrorType {
     CHAIN_ERROR,
-    IMAGE_ERROR
+    IMAGE_ERROR,
+    IO_ERROR
 }
 
 /**
@@ -55,9 +57,6 @@ class ImagePipeline {
      * The position of the last error in the [_effectorChain]
      */
     var errorPos: Int? = null
-
-    // Insert starting image provider
-    init { _effectorChain.add(ImageProvider()) }
 
     /**
      * Loads and image and its data into the pipeline
@@ -134,7 +133,7 @@ class ImagePipeline {
     }
 
     /**
-     *
+     * TODO : Document
      */
     fun rechain(sourcePos: Int, destPos: Int) {
         
@@ -156,10 +155,6 @@ class ImagePipeline {
 
         _effectorChain.forEach { effector ->
             when (effector.type) {
-                ImageEffectorType.PROVIDER -> {
-                    data = (effector as ImageProvider).apply(data as BufferedImage)
-                }
-
                 ImageEffectorType.EFFECT -> {
                     data = (effector as ImageEffect).apply(data as ImageData)
                 }
@@ -176,6 +171,30 @@ class ImagePipeline {
                     data = (effector as ImageManipulation).apply(data as ImageData)
                 }
             }
+        }
+    }
+
+    /**
+     * TODO : Document, add handling for failure
+     */
+    private fun updateImage() {
+        _data.value?.getImage()?.onSuccess {
+            _image.value = it
+        }
+    }
+
+    /**
+     * TODO : Document
+     */
+    fun save(path: String) {
+        try {
+            updateImage()
+            ImageIO.write(_image.value, _data.value!!.extension.base, File(path))
+        } catch (e: IOException) {
+            throw PipelineError(
+                "Failed to save image to $path", "Does the path exist, and is it reachable?",
+                PipelineErrorType.IO_ERROR
+            )
         }
     }
 }

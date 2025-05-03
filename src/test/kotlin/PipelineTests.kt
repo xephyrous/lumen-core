@@ -1,20 +1,20 @@
 import org.xephyrous.lumen.io.ImageLoader
 import org.xephyrous.lumen.pipeline.ImagePipeline
-import java.awt.image.BufferedImage
 import java.io.File
-import javax.imageio.ImageIO
+import java.nio.file.Paths
 import kotlin.test.Test
 
 class PipelineTests {
     @Test
     fun testPipeline() {
         val pipeline = ImagePipeline()
+        pipeline.loadImage("${Paths.get("").toAbsolutePath()}/src/test/kotlin/test_image.jpg")
         pipeline.run()
-        pipeline.loadImage(ImageIO.read(File("C:\\Users\\alexa\\Pictures\\bwaaa.jpg")))
+        pipeline.save("${Paths.get("").toAbsolutePath()}/src/test/kotlin/test_image_output.jpg")
     }
 
     @Test
     fun testImageLoader() {
-        ImageLoader.loadImage(File("C:\\Users\\alexa\\Pictures\\bwaaa.jpg"))
+        ImageLoader.loadImage(File("${Paths.get("").toAbsolutePath()}/src/test/kotlin/test_image.jpg"))
     }
 }

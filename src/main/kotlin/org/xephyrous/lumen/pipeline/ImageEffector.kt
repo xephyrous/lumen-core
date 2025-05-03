@@ -4,9 +4,6 @@ import kotlin.reflect.KClass
 
 /** Represents the types of image effectors */
 enum class ImageEffectorType {
-    /** Provides an ImageData object, always the first effector in the chain */
-    PROVIDER,
-
     /** Applies a filter to the image, only changes individual pixel values */
     FILTER,
 
