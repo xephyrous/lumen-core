@@ -1,6 +1,6 @@
 package org.xephyrous.lumen.manipulations
 
-import org.xephyrous.lumen.pipeline.ImageData
+import org.xephyrous.lumen.storage.ImageData
 import org.xephyrous.lumen.pipeline.ImageEffector
 import org.xephyrous.lumen.pipeline.ImageEffectorType
 

@@ -3,18 +3,19 @@ package org.xephyrous.lumen.errors
 /**
  * TODO : Document DecoratedError
  */
-open class DecoratedError(type: String, message: String, code: Int? = null) : Throwable(message) {
-    init {
-        print(
-            "\n\u001b[31m\u001b[1m[\u001b[0m\u001b[31m ${
-                type.uppercase().replace(" ", "-")
-            }-ERROR : $message \u001b[1m]"
-        )
-
+open class DecoratedError(
+    type: String,
+    message: String,
+    suggestion: String,
+    code: Int? = null
+) : Throwable(
+    buildString {
+        append(type.uppercase().replace(" ", "-"))
+        append(" : ")
+        append(message)
         if (code != null) {
-            print(" <Code $code>")
+            append(" <Code $code>")
         }
-
-        print("\u001b[0m\n\n")
+        append("\n + $suggestion\n")
     }
-}
+)

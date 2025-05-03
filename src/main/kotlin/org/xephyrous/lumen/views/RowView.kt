@@ -1,6 +1,6 @@
 package org.xephyrous.lumen.views
 
-import org.xephyrous.lumen.pipeline.ImageData
+import org.xephyrous.lumen.storage.ImageData
 import java.awt.Color
 
 /**

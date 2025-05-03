@@ -1,28 +1,35 @@
-package utils.images
+package org.xephyrous.lumen.pipeline
 
 import org.xephyrous.lumen.cutters.ImageCutter
 import org.xephyrous.lumen.effects.ImageEffect
 import org.xephyrous.lumen.errors.DecoratedError
 import org.xephyrous.lumen.filters.ImageFilter
+import org.xephyrous.lumen.io.ImageLoader
 import org.xephyrous.lumen.manipulations.ImageManipulation
-import org.xephyrous.lumen.pipeline.ImageData
-import org.xephyrous.lumen.pipeline.ImageEffector
-import org.xephyrous.lumen.pipeline.ImageEffectorType
-import org.xephyrous.lumen.pipeline.ImageProvider
+import org.xephyrous.lumen.storage.ImageData
 import org.xephyrous.lumen.storage.LockType
 import org.xephyrous.lumen.storage.Mask
 import java.awt.image.BufferedImage
+import java.io.File
 import java.io.IOException
 
+/**
+ *
+ */
 enum class PipelineErrorType {
-    CHAIN_ERROR
+    CHAIN_ERROR,
+    IMAGE_ERROR
 }
 
 /**
- * TODO : Document ImagePipelineError
+ * TODO : Document PipelineError
  */
-class ImagePipelineError(message: String, code: PipelineErrorType) : DecoratedError("PIPELINE", message, code.ordinal)
+class PipelineError(message: String, suggestion: String, code: PipelineErrorType)
+    : DecoratedError("PIPELINE_${code.name}", message, suggestion, code.ordinal)
 
+/**
+ *
+ */
 class ImagePipeline {
     /**
      * The current state of the pipeline's image
@@ -54,16 +61,37 @@ class ImagePipeline {
 
     /**
      * Loads and image and its data into the pipeline
-     * @param img The image to be loaded
+     *
+     * @param imageFile The image file to be loaded
      */
-    fun loadImage(img: BufferedImage?) {
-        _image.value = img
-        _data.value = _image.value?.let { ImageData(it) }
+    fun loadImage(imageFile: File) {
+        _data.value = ImageLoader.loadImage(imageFile)
+        _data.value!!.getImage().onSuccess {
+            _image.value = it
+        }.onFailure {
+            throw PipelineError(
+                "Failed to assemble image data",
+                "Ensure the image is not corrupt",
+                PipelineErrorType.IMAGE_ERROR,
+            )
+        }
+    }
+
+    /**
+     * Loads and image and its data into the pipeline
+     * Helper function for [loadImage]
+     *
+     * @param imagePath The path of the image file to be loaded
+     */
+    fun loadImage(imagePath: String) {
+        loadImage(File(imagePath))
     }
 
     /**
      * Builds the current state of the image data into an image and returns it
+     *
      * @return On a successful read of the image data, the stored image as a [BufferedImage].
+     *
      * @throws IOException On a failed read of the image data.
      */
     fun getImage(): Result<BufferedImage> {
@@ -79,58 +107,51 @@ class ImagePipeline {
 
     /**
      * Adds any number of ImageEffectors to the pipeline
-     * @param effector Any number of [ImageEffector]s to add to the end of the pipeline chain
+     *
+     * @param effectors Any number of [ImageEffector]s to add to the end of the pipeline chain
+     *
      * @return A result object that contains the success state of the function
      * along with a message, used for UI integration/callbacks.
      */
-    fun chain(effector: ImageEffector<*, *>): Result<Unit> {
-        if (_effectorChain.size == 0) { // Chain does not start with Unit inputType
-            if (effector.type != ImageEffectorType.PROVIDER) {
-                errorPos = 0
+    fun chain(vararg effectors: ImageEffector<*, *>): Result<Unit> {
+        effectors.forEach { effector ->
+            val lastEffector = _effectorChain.last()
+
+            if (!lastEffector.chainIOCheck(effector)) {
                 return Result.failure(
-                    ImagePipelineError(
-                        "Invalid Starting Effector!",
+                    PipelineError(
+                        "Mismatched effector types : ${lastEffector.outputType::class.qualifiedName} -> ${effector.inputType::class.qualifiedName}",
+                        "Did you call ImagePipeline.loadImage()?",
                         PipelineErrorType.CHAIN_ERROR
                     )
                 )
             }
 
-            // Current chain cannot connect with added effector
-            if (_effectorChain[0].outputType != effector) {
-                errorPos = _effectorChain.size
-                return Result.failure(
-                    ImagePipelineError(
-                        "Non-Connecting Effector!",
-                        PipelineErrorType.CHAIN_ERROR
-                    )
-                )
-            }
+            _effectorChain.add(effector)
         }
 
-        // Validate added effector
-        try {
-            if (effector.outputType != effector.inputType) {
-                return Result.failure(
-                    ImagePipelineError(
-                        "Non-Connecting Effector!",
-                        PipelineErrorType.CHAIN_ERROR
-                    )
-                )
-            }
-        } catch (_: Exception) { /* (ㆆ_ㆆ) */ }
-
-        _effectorChain.add(effector)
         return Result.success(Unit)
     }
 
+    /**
+     *
+     */
     fun rechain(sourcePos: Int, destPos: Int) {
         
     }
 
     /**
-     * Applies all effector in the [_effectorChain] to the image loaded in the pipeline
+     * Applies all effectors in the [_effectorChain] to the image loaded in the pipeline
      */
     fun run() {
+        if (_image.value == null) {
+            throw PipelineError(
+                "No image loaded into pipeline!",
+                "Did you call ImagePipeline.loadImage()?",
+                PipelineErrorType.IMAGE_ERROR
+            )
+        }
+
         var data: Any = _image.value!!
 
         _effectorChain.forEach { effector ->

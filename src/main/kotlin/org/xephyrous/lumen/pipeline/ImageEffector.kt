@@ -30,7 +30,7 @@ abstract class ImageEffector<TIn, TOut> {
 
     abstract fun apply(data: TIn): TOut
 
-    protected fun chainIOCheck(next: ImageEffector<*, *>): Boolean {
+    fun chainIOCheck(next: ImageEffector<*, *>): Boolean {
         return this.inputType == next.inputType && this.outputType == next.outputType
     }
 }

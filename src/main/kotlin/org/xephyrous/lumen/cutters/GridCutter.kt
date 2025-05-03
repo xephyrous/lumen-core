@@ -1,6 +1,6 @@
 package org.xephyrous.lumen.cutters
 
-import org.xephyrous.lumen.pipeline.ImageData
+import org.xephyrous.lumen.storage.ImageData
 import org.xephyrous.lumen.storage.Mask
 import org.xephyrous.lumen.utils.PositionNode
 import java.awt.Dimension
@@ -33,6 +33,7 @@ class GridCutter(private var gridX: Int, private var gridY: Int) : ImageCutter()
      * Cuts the loaded image into a grid of [gridX] x [gridY] tiles
      *
      * @param data The image to cut
+     *
      * @return The cut pieces of the image as an [ArrayList] of [Mask]s
      */
     override fun apply(data: ImageData): ArrayList<Mask> {

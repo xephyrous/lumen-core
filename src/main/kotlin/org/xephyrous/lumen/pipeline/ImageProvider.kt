@@ -1,5 +1,6 @@
 package org.xephyrous.lumen.pipeline
 
+import org.xephyrous.lumen.storage.ImageData
 import java.awt.image.BufferedImage
 import kotlin.reflect.KClass
 

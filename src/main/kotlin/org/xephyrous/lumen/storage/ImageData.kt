@@ -1,10 +1,12 @@
-package org.xephyrous.lumen.pipeline
+package org.xephyrous.lumen.storage
 
+import org.xephyrous.lumen.io.ImageLoader
+import org.xephyrous.lumen.io.ImageLoader.SupportedImageType
 import org.xephyrous.lumen.views.ImageDataView
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.imageio.ImageIO
 import kotlin.experimental.and
@@ -14,21 +16,18 @@ import kotlin.experimental.and
  *
  * @param image The base image to convert to data
  */
-class ImageData(private val image: BufferedImage) {
-    // TODO("Validate this actually works (Thanks Shit-GPT)")
-    private val _data: ByteArray = (image.raster.dataBuffer as DataBufferInt).data.flatMap {
-        listOf(
-            (it shr 24).toByte(),
-            (it shr 16).toByte(),
-            (it shr 8).toByte(),
-            it.toByte()
-        )
-    }.toByteArray()
-
+class ImageData(image: BufferedImage, val extension: SupportedImageType) {
+    private val _data: ByteArray
     private lateinit var _view: ImageDataView
 
     val width: Int = image.width
     val height: Int = image.height
+
+    init { // TODO : Allow variable image file type
+        val stream = ByteArrayOutputStream()
+        ImageIO.write(image, "png", stream)
+        _data = stream.toByteArray()
+    }
 
     /**
      * Converts coordinates on the stored image to the corresponding position in the [ByteArray]
@@ -56,8 +55,7 @@ class ImageData(private val image: BufferedImage) {
     }
 
     /**
-     * Returns the color at a specified index in [_data]
-     *
+     * Returns the color at a specified index in [_data].
      * Automatically determines if the image has an alpha channel
      *
      * @param index The index of the pixel to get the color of
