@@ -1,7 +1,7 @@
 package org.xephyrous.lumen.io
 
 import org.xephyrous.lumen.errors.DecoratedError
-import org.xephyrous.lumen.storage.ImageData
+import org.xephyrous.lumen.storage.ImageBuffer
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -55,7 +55,7 @@ object ImageLoader {
     /**
      * TODO : Document
      */
-    fun loadImage(file: File): ImageData {
+    fun loadImage(file: File): ImageBuffer {
         if (!file.exists() || !file.isFile || !file.canRead()) {
             throw DecoratedError(
                 "INACCESSIBLE_IMAGE_FILE", "The file '${file.path}' cannot be loaded",
@@ -72,8 +72,13 @@ object ImageLoader {
 
         try {
             val imageFile = ImageIO.read(file)
-            return ImageData(imageFile, SupportedImageType.from(file.extension)!!)
-        } catch(e: IOException) {
+            val width = imageFile.width
+            val height = imageFile.height
+            val pixels = IntArray(width * height)
+            imageFile.getRGB(0, 0, width, height, pixels, 0, width)
+
+            return ImageBuffer(width, height, pixels, SupportedImageType.from(file.extension)!!)
+        } catch (e: IOException) {
             throw DecoratedError(
                 "INVALID_IMAGE_FILE", "The image file '${file.absolutePath}' could not be read",
                 e.message.toString()

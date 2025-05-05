@@ -1,6 +1,6 @@
 package org.xephyrous.lumen.views
 
-import org.xephyrous.lumen.storage.ImageData
+import org.xephyrous.lumen.storage.ImageBuffer
 import java.awt.Color
 
 /**
@@ -8,9 +8,9 @@ import java.awt.Color
  *
  * @param image A reference to the parent class's stored image
  */
-abstract class ImageDataView(image: ImageData) {
+abstract class ImageDataView(image: ImageBuffer) {
     /** Holds a reference to the parent image */
-    val _image: ImageData = image
+    val _image: ImageBuffer = image
 
     /** @return The value at a given coordinate */
     abstract operator fun get(pos: Pair<Int, Int>): Color?

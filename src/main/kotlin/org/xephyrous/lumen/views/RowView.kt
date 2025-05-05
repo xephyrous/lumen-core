@@ -1,12 +1,12 @@
 package org.xephyrous.lumen.views
 
-import org.xephyrous.lumen.storage.ImageData
+import org.xephyrous.lumen.storage.ImageBuffer
 import java.awt.Color
 
 /**
  * TODO : Document & Finish RowView
  */
-class RowView(image: ImageData) : ImageDataView(image) {
+class RowView(image: ImageBuffer) : ImageDataView(image) {
     /** Override of [ImageDataView.get] */
     override fun get(pos: Pair<Int, Int>): Color? {
         TODO("Not yet implemented")

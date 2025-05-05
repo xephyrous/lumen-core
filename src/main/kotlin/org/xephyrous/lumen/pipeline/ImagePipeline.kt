@@ -6,7 +6,7 @@ import org.xephyrous.lumen.errors.DecoratedError
 import org.xephyrous.lumen.filters.ImageFilter
 import org.xephyrous.lumen.io.ImageLoader
 import org.xephyrous.lumen.manipulations.ImageManipulation
-import org.xephyrous.lumen.storage.ImageData
+import org.xephyrous.lumen.storage.ImageBuffer
 import org.xephyrous.lumen.storage.LockType
 import org.xephyrous.lumen.storage.Mask
 import java.awt.image.BufferedImage
@@ -41,7 +41,7 @@ class ImagePipeline {
     /**
      * The pure data of the image being stored
      */
-    private var _data: LockType<ImageData?> = LockType(null)
+    private var _data: LockType<ImageBuffer?> = LockType(null)
 
     /**
      * The cut areas of the image as [Mask]s
@@ -65,15 +65,7 @@ class ImagePipeline {
      */
     fun loadImage(imageFile: File) {
         _data.value = ImageLoader.loadImage(imageFile)
-        _data.value!!.getImage().onSuccess {
-            _image.value = it
-        }.onFailure {
-            throw PipelineError(
-                "Failed to assemble image data",
-                "Ensure the image is not corrupt",
-                PipelineErrorType.IMAGE_ERROR,
-            )
-        }
+        _image.value = _data.value!!.toBufferedImage()
     }
 
     /**
@@ -93,15 +85,9 @@ class ImagePipeline {
      *
      * @throws IOException On a failed read of the image data.
      */
-    fun getImage(): Result<BufferedImage> {
-        _data.value?.getImage()?.onSuccess {
-            _image.value = it
-            return Result.success(it)
-        }?.onFailure {
-            return Result.failure(it)
-        }
-
-        return Result.failure(IOException("Failed to read image data!"));
+    fun getImage(): BufferedImage {
+        updateImage()
+        return _image.value!!
     }
 
     /**
@@ -114,13 +100,25 @@ class ImagePipeline {
      */
     fun chain(vararg effectors: ImageEffector<*, *>): Result<Unit> {
         effectors.forEach { effector ->
-            val lastEffector = _effectorChain.last()
+            if (_effectorChain.isEmpty()) {
+                if (effector.inputType != ImageBuffer::class) {
+                    PipelineError(
+                        "Mismatched effector types : ${ImageBuffer::class.qualifiedName} -> ${effector.inputType::class.qualifiedName}",
+                        "Are you missing an intermediate effector?",
+                        PipelineErrorType.CHAIN_ERROR
+                    )
+                }
 
+                _effectorChain.add(effector)
+                return@forEach
+            }
+
+            val lastEffector = _effectorChain.last()
             if (!lastEffector.chainIOCheck(effector)) {
                 return Result.failure(
                     PipelineError(
                         "Mismatched effector types : ${lastEffector.outputType::class.qualifiedName} -> ${effector.inputType::class.qualifiedName}",
-                        "Did you call ImagePipeline.loadImage()?",
+                        "Are you missing an intermediate effector?",
                         PipelineErrorType.CHAIN_ERROR
                     )
                 )
@@ -151,24 +149,24 @@ class ImagePipeline {
             )
         }
 
-        var data: Any = _image.value!!
+        var data: Any = _data.value!!
 
         _effectorChain.forEach { effector ->
             when (effector.type) {
                 ImageEffectorType.EFFECT -> {
-                    data = (effector as ImageEffect).apply(data as ImageData)
+                    data = (effector as ImageEffect).apply(data as ImageBuffer)
                 }
 
                 ImageEffectorType.FILTER -> {
-                    data = (effector as ImageFilter).apply(data as ImageData)
+                    data = (effector as ImageFilter).apply(data as ImageBuffer)
                 }
 
                 ImageEffectorType.CUTTER -> {
-                    data = (effector as ImageCutter).apply(data as ImageData)
+                    data = (effector as ImageCutter).apply(data as ImageBuffer)
                 }
 
                 ImageEffectorType.MANIPULATION -> {
-                    data = (effector as ImageManipulation).apply(data as ImageData)
+                    data = (effector as ImageManipulation).apply(data as ImageBuffer)
                 }
             }
         }
@@ -178,9 +176,7 @@ class ImagePipeline {
      * TODO : Document, add handling for failure
      */
     private fun updateImage() {
-        _data.value?.getImage()?.onSuccess {
-            _image.value = it
-        }
+        _image.value = _data.value!!.toBufferedImage()
     }
 
     /**
@@ -193,6 +189,11 @@ class ImagePipeline {
         } catch (e: IOException) {
             throw PipelineError(
                 "Failed to save image to $path", "Does the path exist, and is it reachable?",
+                PipelineErrorType.IO_ERROR
+            )
+        } catch (e: Exception) {
+            throw PipelineError(
+                "Error saving pipeline image to $path", e.message.toString(),
                 PipelineErrorType.IO_ERROR
             )
         }

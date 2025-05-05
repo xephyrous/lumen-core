@@ -1,12 +1,12 @@
 package org.xephyrous.lumen.views
 
-import org.xephyrous.lumen.storage.ImageData
+import org.xephyrous.lumen.storage.ImageBuffer
 import java.awt.Color
 
 /**
  * TODO : Document & Finish DiagonalView
  */
-class DiagonalView(image: ImageData) : ImageDataView(image) {
+class DiagonalView(image: ImageBuffer) : ImageDataView(image) {
     /** Override of [ImageDataView.get] */
     override fun get(pos: Pair<Int, Int>): Color? {
         TODO("Not yet implemented")

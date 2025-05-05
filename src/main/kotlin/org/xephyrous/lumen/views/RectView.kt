@@ -1,6 +1,6 @@
 package org.xephyrous.lumen.views
 
-import org.xephyrous.lumen.storage.ImageData
+import org.xephyrous.lumen.storage.ImageBuffer
 import java.awt.Color
 
 /**
@@ -11,7 +11,7 @@ import java.awt.Color
  * (Defaults to `false`)
  */
 class RectView(
-    private val image: ImageData,
+    private val image: ImageBuffer,
     size: Int, private val snap: Boolean = false
 ) : ImageDataView(image) {
     /** The size of the rect (width, height) */
@@ -37,7 +37,7 @@ class RectView(
             return null
         }
 
-        return _image.colorAt(_image.indexOf(pos))
+        return _image.getColor(pos.first, pos.second)
     }
 
     /** Override of [ImageDataView.set] */

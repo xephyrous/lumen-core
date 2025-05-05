@@ -1,6 +1,6 @@
 package org.xephyrous.lumen.cutters
 
-import org.xephyrous.lumen.storage.ImageData
+import org.xephyrous.lumen.storage.ImageBuffer
 import org.xephyrous.lumen.storage.Mask
 import org.xephyrous.lumen.utils.PositionNode
 import java.awt.Dimension
@@ -36,7 +36,7 @@ class GridCutter(private var gridX: Int, private var gridY: Int) : ImageCutter()
      *
      * @return The cut pieces of the image as an [ArrayList] of [Mask]s
      */
-    override fun apply(data: ImageData): ArrayList<Mask> {
+    override fun apply(data: ImageBuffer): ArrayList<Mask> {
         val masks: ArrayList<Mask> = arrayListOf()
 
         val spacingX = floor(data.width.toDouble() / gridX).toInt()
