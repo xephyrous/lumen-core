@@ -1,7 +1,6 @@
 package org.xephyrous.lumen.storage
 
 import org.xephyrous.lumen.io.ImageLoader.SupportedImageType
-import org.xephyrous.lumen.views.ImageDataView
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream

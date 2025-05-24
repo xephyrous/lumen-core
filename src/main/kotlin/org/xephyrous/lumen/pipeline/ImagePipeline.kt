@@ -168,6 +168,8 @@ class ImagePipeline {
                 ImageEffectorType.MANIPULATION -> {
                     data = (effector as ImageManipulation).apply(data as ImageBuffer)
                 }
+
+                ImageEffectorType.KERNEL -> TODO()
             }
         }
     }

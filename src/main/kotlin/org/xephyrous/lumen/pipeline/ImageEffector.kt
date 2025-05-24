@@ -14,7 +14,10 @@ enum class ImageEffectorType {
     MANIPULATION,
 
     /** Adds a cut to the image */
-    CUTTER
+    CUTTER,
+
+    /** Walks a kernel over the image */
+    KERNEL
 }
 
 /**
