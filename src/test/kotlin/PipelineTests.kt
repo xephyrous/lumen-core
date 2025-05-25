@@ -1,7 +1,4 @@
-import org.xephyrous.lumen.filters.BrightnessFilter
-import org.xephyrous.lumen.filters.GrayscaleFilter
-import org.xephyrous.lumen.filters.NegativeFilter
-import org.xephyrous.lumen.filters.SepiaFilter
+import org.xephyrous.lumen.filters.*
 import org.xephyrous.lumen.pipeline.ImagePipeline
 import java.io.File
 import java.nio.file.Paths
@@ -10,114 +7,52 @@ import kotlin.test.Test
 import kotlin.time.measureTime
 
 class PipelineTests {
+
     @Test
     fun testFilters() {
-        val inputSmall = "${Paths.get("").toAbsolutePath()}/src/test/resources/test_image.jpg"
-        val inputLarge = "${Paths.get("").toAbsolutePath()}/src/test/resources/test_image_large.jpg"
+        val basePath = Paths.get("").toAbsolutePath()
+        val inputSmall = "$basePath/src/test/resources/test_image.jpg"
+        val inputLarge = "$basePath/src/test/resources/test_image_large.jpg"
+        val outputDir = "$basePath/src/test/output"
 
-        val filters = arrayOf(
-            Pair(::sepiaFilterTest, "sepiaFilterTest"),
-            Pair(::grayscaleFilterTest, "grayscaleFilterTest"),
-            Pair(::negativeFilterTest, "negativeFilterTest"),
-            Pair(::brightnessAddFilterTest, "brightnessAddFilterTest"),
-            Pair(::brightnessSubFilterTest, "brightnessSubFilterTest"),
-            Pair(::brightnessNoneFilterTest, "brightnessNoneFilterTest"),
+        val tests = listOf<Pair<String, (ImagePipeline) -> Unit>>(
+            "sepia" to { it.clearEffectors(); it.chain(SepiaFilter()) },
+            "grayscale" to { it.clearEffectors(); it.chain(GrayscaleFilter()) },
+            "negative" to { it.clearEffectors(); it.chain(NegativeFilter()) },
+            "brightness_add" to { it.clearEffectors(); it.chain(BrightnessFilter(75)) },
+            "brightness_sub" to { it.clearEffectors(); it.chain(BrightnessFilter(-75)) },
+            "brightness_none" to {
+                it.clearEffectors()
+                it.chain(BrightnessFilter(50))
+                it.chain(BrightnessFilter(-50))
+            }
         )
 
-        filters.forEach { filter ->
-            timeTest(
-                inputSmall,
-                "${Paths.get("").toAbsolutePath()}/src/test/output/_${filter.second}_small.jpg",
-                filter.first, "${filter.second} - small"
-            )
+        tests.forEach { (name, applyFilter) ->
+            val outputSmall = "$outputDir/_${name}_small.jpg"
+            val outputLarge = "$outputDir/_${name}_large.jpg"
 
-            timeTest(
-                inputLarge,
-                "${Paths.get("").toAbsolutePath()}/src/test/output/_${filter.second}_large.jpg",
-                filter.first, "${filter.second} - large"
-            )
+            runFilterTest("$name - small", inputSmall, outputSmall, applyFilter)
+            runFilterTest("$name - large", inputLarge, outputLarge, applyFilter)
         }
     }
 
-    fun sepiaFilterTest(input: String, output: String) {
+    private fun runFilterTest(name: String, input: String, output: String, applyFilter: (ImagePipeline) -> Unit) {
         val pipeline = ImagePipeline()
         pipeline.loadImage(input)
-        pipeline.chain(SepiaFilter())
-        pipeline.run()
+        applyFilter(pipeline)
 
-        val output = File(output)
-        pipeline.save(output.absolutePath)
-
-        assert(output.exists()) { "Output file does not exist" }
-    }
-
-    fun grayscaleFilterTest(input: String, output: String) {
-        val pipeline = ImagePipeline()
-        pipeline.loadImage(input)
-        pipeline.chain(GrayscaleFilter())
-        pipeline.run()
-
-        val output = File(output)
-        pipeline.save(output.absolutePath)
-
-        assert(output.exists()) { "Output file does not exist" }
-    }
-
-    fun negativeFilterTest(input: String, output: String) {
-        val pipeline = ImagePipeline()
-        pipeline.loadImage(input)
-        pipeline.chain(NegativeFilter())
-        pipeline.run()
-
-        val output = File(output)
-        pipeline.save(output.absolutePath)
-
-        assert(output.exists()) { "Output file does not exist" }
-    }
-
-    fun brightnessAddFilterTest(input: String, output: String) {
-        val pipeline = ImagePipeline()
-        pipeline.loadImage(input)
-        pipeline.chain(BrightnessFilter(75))
-        pipeline.run()
-
-        val output = File(output)
-        pipeline.save(output.absolutePath)
-
-        assert(output.exists()) { "Output file does not exist" }
-    }
-
-    fun brightnessSubFilterTest(input: String, output: String) {
-        val pipeline = ImagePipeline()
-        pipeline.loadImage(input)
-        pipeline.chain(BrightnessFilter(-75))
-        pipeline.run()
-
-        val output = File(output)
-        pipeline.save(output.absolutePath)
-
-        assert(output.exists()) { "Output file does not exist" }
-    }
-
-    fun brightnessNoneFilterTest(input: String, output: String) {
-        val pipeline = ImagePipeline()
-        pipeline.loadImage(input)
-        pipeline.chain(BrightnessFilter(50))
-        pipeline.chain(BrightnessFilter(-50))
-        pipeline.run()
-
-        val output = File(output)
-        pipeline.save(output.absolutePath)
-
-        assert(output.exists()) { "Output file does not exist" }
-    }
-
-    fun timeTest(input: String, output: String, func: (String, String) -> Unit, name: String) {
+        // Time only the filter application
         val time = measureTime {
-            func(input, output)
+            pipeline.run()
         }
+
+        pipeline.save(output)
+
+        val file = File(output)
+        assert(file.exists()) { "Output file does not exist for $name" }
 
         val image = ImageIO.read(File(input))
-        println("[$name] : $time - ${time.inWholeNanoseconds / (image.width * image.height)}ns/px")
+        println("[$name] : $time | ${time.inWholeNanoseconds / (image.width * image.height)}ns/px")
     }
 }

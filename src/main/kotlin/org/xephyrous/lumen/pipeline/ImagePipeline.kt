@@ -133,8 +133,24 @@ class ImagePipeline {
     /**
      * TODO : Document
      */
-    fun rechain(sourcePos: Int, destPos: Int) {
-        
+    fun clearEffectors() {
+        _effectorChain.clear()
+    }
+
+    /**
+     * TODO : Document
+     */
+    fun unloadImage() {
+        _image.value = null
+        _data.value = null
+    }
+
+    /**
+     * TODO : Document
+     */
+    fun clear() {
+        unloadImage()
+        clearEffectors()
     }
 
     /**
@@ -144,7 +160,7 @@ class ImagePipeline {
         if (_image.value == null) {
             throw PipelineError(
                 "No image loaded into pipeline!",
-                "Did you call ImagePipeline.loadImage()?",
+                "Did you call ImagePipeline.loadImage() or ImagePipeline.unloadImage()?",
                 PipelineErrorType.IMAGE_ERROR
             )
         }
