@@ -1,9 +1,11 @@
 package org.xephyrous.lumen.cutters
 
+import org.xephyrous.lumen.io.ImageLoader
 import org.xephyrous.lumen.storage.ImageBuffer
 import org.xephyrous.lumen.storage.Mask
 import org.xephyrous.lumen.utils.PositionNode
 import java.awt.Dimension
+import java.awt.image.BufferedImage
 import kotlin.math.floor
 import kotlin.math.min
 
@@ -14,21 +16,6 @@ import kotlin.math.min
  * @param gridY The number of rows to cut
  */
 class GridCutter(private var gridX: Int, private var gridY: Int) : ImageCutter() {
-
-    /**
-     *
-     */
-    fun setGridX(xVal: Int) {
-
-    }
-
-    /**
-     *
-     */
-    fun setGridY(yVal: Int) {
-
-    }
-
     /**
      * Cuts the loaded image into a grid of [gridX] x [gridY] tiles
      *
@@ -54,5 +41,18 @@ class GridCutter(private var gridX: Int, private var gridY: Int) : ImageCutter()
         }
 
         return masks
+    }
+
+    companion object {
+        /**
+         * Standalone runner function for [org.xephyrous.lumen.cutters.GridCutter]
+         *
+         * @see [org.xephyrous.lumen.cutters.GridCutter.apply]
+         * @param image The image to cut
+         */
+        fun run(image: BufferedImage, gridX: Int, gridY: Int) : ArrayList<Mask> {
+            val instance = GridCutter(gridX, gridY)
+            return instance.apply(ImageLoader.loadImage(image))
+        }
     }
 }

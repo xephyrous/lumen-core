@@ -17,6 +17,22 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(21)
+}
+
+tasks.register("clearOutput") {
+    val outputDir = file("src/test/output")
+
+    doLast {
+        if (outputDir.exists()) {
+            outputDir.deleteRecursively()
+            outputDir.mkdirs()
+            println("Output folder cleared.")
+        } else {
+            println("Output folder does not exist - creating.")
+            outputDir.mkdirs()
+        }
+    }
 }

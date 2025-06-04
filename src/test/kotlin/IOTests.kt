@@ -6,6 +6,6 @@ import kotlin.test.Test
 class IOTests {
     @Test
     fun testImageLoader() {
-        ImageLoader.loadImage(File("${Paths.get("").toAbsolutePath()}/src/test/kotlin/test_image.jpg"))
+        ImageLoader.loadImage(File("${Paths.get("").toAbsolutePath()}/src/test/resources/test_image.jpg"))
     }
 }
