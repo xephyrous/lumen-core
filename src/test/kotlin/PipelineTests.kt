@@ -1,13 +1,12 @@
-import org.xephyrous.lumen.cutters.GridCutter
 import org.xephyrous.lumen.filters.*
 import org.xephyrous.lumen.io.ImageLoader
-import org.xephyrous.lumen.pipeline.ImageEffector
+import org.xephyrous.lumen.io.ImageLoader.loadImage
 import org.xephyrous.lumen.pipeline.ImagePipeline
+import org.xephyrous.lumen.pipeline.ImagePipelineScope
 import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Paths
 import javax.imageio.ImageIO
-import kotlin.run
 import kotlin.test.Test
 import kotlin.time.measureTime
 
@@ -74,9 +73,10 @@ class PipelineTests {
     }
 
     private fun runFilterTest(name: String, input: String, output: String, applyFilter: (ImagePipeline) -> Unit) {
-        val pipeline = ImagePipeline()
-        pipeline.loadImage(input)
+        val pipeline = ImagePipeline { loadImage(File(input)) }
         applyFilter(pipeline)
+
+        val test = ImagePipeline()
 
         // Time only the filter application
         val time = measureTime {

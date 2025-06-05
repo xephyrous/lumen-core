@@ -15,7 +15,13 @@ import java.io.IOException
 import javax.imageio.ImageIO
 
 /**
- *
+ * DSL marker annotation to scope DSL functions related to image pipelines
+ */
+@DslMarker
+annotation class PipelineDsl
+
+/**
+ * Represents types of errors that can occur during pipeline operations
  */
 enum class PipelineErrorType {
     CHAIN_ERROR,
@@ -24,14 +30,35 @@ enum class PipelineErrorType {
 }
 
 /**
- * TODO : Document PipelineError
+ * Represents a decorated error specific to the [ImagePipeline] system
+ *
+ * @param message The error message to display
+ * @param suggestion Suggested actions or hints to resolve the error
+ * @param code The specific error type code
  */
 class PipelineError(message: String, suggestion: String, code: PipelineErrorType)
     : DecoratedError("PIPELINE_${code.name}", message, suggestion, code.ordinal)
 
 /**
+ * Builds and executes an [ImagePipeline] using a DSL-style block
  *
+ * @param shouldRun Whether the pipeline should be run following completion of [block]
+ * @param block A lambda with receiver that modifies the [ImagePipeline]
+ *
+ * @return The [ImagePipeline] instance
  */
+fun ImagePipeline(shouldRun: Boolean = true, block: ImagePipeline.() -> Unit): ImagePipeline {
+    val pipeline = ImagePipeline()
+    pipeline.shouldRun = shouldRun
+    pipeline.block()
+    if (pipeline.shouldRun) pipeline.run()
+    return pipeline
+}
+
+/**
+ * An image processing pipeline that applies a chain of effectors to process images
+ */
+@PipelineDsl
 class ImagePipeline {
     /**
      * The current state of the pipeline's image
@@ -52,6 +79,11 @@ class ImagePipeline {
      * A list of linkable image effector to be enacted on the image
      */
     private var _effectorChain: ArrayList<ImageEffector<*, *>> = arrayListOf()
+
+    /**
+     * Whether the pipeline should automatically run when built via DSL
+     */
+    internal var shouldRun: Boolean = true
 
     /**
      * The position of the last error in the [_effectorChain]
@@ -131,14 +163,14 @@ class ImagePipeline {
     }
 
     /**
-     * TODO : Document
+     * Clears all effectors loaded into the pipeline's chain
      */
     fun clearEffectors() {
         _effectorChain.clear()
     }
 
     /**
-     * TODO : Document
+     * Unloads any image data loaded into the pipeline
      */
     fun unloadImage() {
         _image.value = null
@@ -146,7 +178,7 @@ class ImagePipeline {
     }
 
     /**
-     * TODO : Document
+     * Clears the pipeline of all loaded data. Unloads the pipeline image and clears all effectors
      */
     fun clear() {
         unloadImage()
@@ -191,14 +223,16 @@ class ImagePipeline {
     }
 
     /**
-     * TODO : Document, add handling for failure
+     * Forces the pipeline's internal image snapshot to be updated from the image data
      */
     private fun updateImage() {
         _image.value = _data.value!!.toBufferedImage()
     }
 
     /**
-     * TODO : Document
+     * Saves the current image snapshot to a file. The internal snapshot is updated prior to saving
+     *
+     * @param path The path to save to
      */
     fun save(path: String) {
         try {
