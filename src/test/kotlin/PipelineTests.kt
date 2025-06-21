@@ -1,8 +1,7 @@
 import org.xephyrous.lumen.filters.*
 import org.xephyrous.lumen.io.ImageLoader
-import org.xephyrous.lumen.io.ImageLoader.loadImage
 import org.xephyrous.lumen.pipeline.ImagePipeline
-import org.xephyrous.lumen.pipeline.ImagePipelineScope
+import org.xephyrous.lumen.pipeline.Pipeline
 import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Paths
@@ -19,7 +18,7 @@ class PipelineTests {
         val inputLarge = "$basePath/src/test/resources/test_image_large.jpg"
         val outputDir = "$basePath/src/test/output"
 
-        val tests = listOf<Pair<String, (ImagePipeline) -> Unit>>(
+        val tests = listOf<Pair<String, (Pipeline) -> Unit>>(
             "sepia" to { it.clearEffectors(); it.chain(SepiaFilter()) },
             "grayscale" to { it.clearEffectors(); it.chain(GrayscaleFilter()) },
             "negative" to { it.clearEffectors(); it.chain(NegativeFilter()) },
@@ -72,11 +71,9 @@ class PipelineTests {
         }
     }
 
-    private fun runFilterTest(name: String, input: String, output: String, applyFilter: (ImagePipeline) -> Unit) {
+    private fun runFilterTest(name: String, input: String, output: String, applyFilter: (Pipeline) -> Unit) {
         val pipeline = ImagePipeline { loadImage(File(input)) }
         applyFilter(pipeline)
-
-        val test = ImagePipeline()
 
         // Time only the filter application
         val time = measureTime {

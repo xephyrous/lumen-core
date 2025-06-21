@@ -3,16 +3,15 @@ package org.xephyrous.lumen.filters
 import org.xephyrous.lumen.storage.ImageBuffer
 import org.xephyrous.lumen.pipeline.ImageEffector
 import org.xephyrous.lumen.pipeline.ImageEffectorType
+import org.xephyrous.lumen.utils.typeRef
 import java.awt.Color
 import kotlin.reflect.KClass
 
 /**
  * Applies a filter to an image, modifying pixel values individually
  */
-abstract class ImageFilter : ImageEffector<ImageBuffer, ImageBuffer>() {
+abstract class ImageFilter : ImageEffector<ImageBuffer, ImageBuffer>(typeRef()) {
     override val type: ImageEffectorType = ImageEffectorType.FILTER
-    override val inputType: KClass<*> = ImageBuffer::class
-    override val outputType: KClass<*> = ImageBuffer::class
 
     /**
      * Changes a pixel color by a given function

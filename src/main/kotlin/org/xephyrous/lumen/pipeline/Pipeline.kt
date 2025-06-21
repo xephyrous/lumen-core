@@ -30,7 +30,7 @@ enum class PipelineErrorType {
 }
 
 /**
- * Represents a decorated error specific to the [ImagePipeline] system
+ * Represents a decorated error specific to the [Pipeline] system
  *
  * @param message The error message to display
  * @param suggestion Suggested actions or hints to resolve the error
@@ -47,8 +47,8 @@ class PipelineError(message: String, suggestion: String, code: PipelineErrorType
  *
  * @return The [ImagePipeline] instance
  */
-fun ImagePipeline(shouldRun: Boolean = true, block: ImagePipeline.() -> Unit): ImagePipeline {
-    val pipeline = ImagePipeline()
+fun ImagePipeline(shouldRun: Boolean = true, block: Pipeline.() -> Unit): Pipeline {
+    val pipeline = Pipeline()
     pipeline.shouldRun = shouldRun
     pipeline.block()
     if (pipeline.shouldRun) pipeline.run()
@@ -59,7 +59,7 @@ fun ImagePipeline(shouldRun: Boolean = true, block: ImagePipeline.() -> Unit): I
  * An image processing pipeline that applies a chain of effectors to process images
  */
 @PipelineDsl
-class ImagePipeline {
+class Pipeline {
     /**
      * The current state of the pipeline's image
      */
