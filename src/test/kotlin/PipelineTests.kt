@@ -1,5 +1,6 @@
 import org.xephyrous.lumen.filters.*
 import org.xephyrous.lumen.io.ImageLoader
+import org.xephyrous.lumen.kernels.BoxBlurKernel
 import org.xephyrous.lumen.pipeline.ImagePipeline
 import org.xephyrous.lumen.pipeline.Pipeline
 import java.awt.image.BufferedImage
@@ -10,14 +11,13 @@ import kotlin.test.Test
 import kotlin.time.measureTime
 
 class PipelineTests {
+    val basePath: String = Paths.get("").toAbsolutePath().toString()
+    val inputSmall = "$basePath/src/test/resources/test_image.jpg"
+    val inputLarge = "$basePath/src/test/resources/test_image_large.jpg"
+    val outputDir = "$basePath/src/test/output"
 
     @Test
     fun testFilters() {
-        val basePath = Paths.get("").toAbsolutePath()
-        val inputSmall = "$basePath/src/test/resources/test_image.jpg"
-        val inputLarge = "$basePath/src/test/resources/test_image_large.jpg"
-        val outputDir = "$basePath/src/test/output"
-
         val tests = listOf<Pair<String, (Pipeline) -> Unit>>(
             "sepia" to { it.clearEffectors(); it.chain(SepiaFilter()) },
             "grayscale" to { it.clearEffectors(); it.chain(GrayscaleFilter()) },
@@ -38,18 +38,13 @@ class PipelineTests {
             val outputSmall = "$outputDir/_${name}_small.jpg"
             val outputLarge = "$outputDir/_${name}_large.jpg"
 
-            runFilterTest("$name - small", inputSmall, outputSmall, applyFilter)
-            runFilterTest("$name - large", inputLarge, outputLarge, applyFilter)
+            runEffectorTest("$name - small", inputSmall, outputSmall, applyFilter)
+            runEffectorTest("$name - large", inputLarge, outputLarge, applyFilter)
         }
     }
 
     @Test
     fun testFiltersStandalone() {
-        val basePath = Paths.get("").toAbsolutePath()
-        val inputSmall = "$basePath/src/test/resources/test_image.jpg"
-        val inputLarge = "$basePath/src/test/resources/test_image_large.jpg"
-        val outputDir = "$basePath/src/test/output"
-
         val tests = listOf<Pair<String, (BufferedImage) -> BufferedImage>>(
             "sepia" to { SepiaFilter.run(it) },
             "grayscale" to { GrayscaleFilter.run(it) },
@@ -71,11 +66,25 @@ class PipelineTests {
         }
     }
 
-    private fun runFilterTest(name: String, input: String, output: String, applyFilter: (Pipeline) -> Unit) {
-        val pipeline = ImagePipeline { loadImage(File(input)) }
-        applyFilter(pipeline)
+    @Test
+    fun testKernels() {
+        val tests = listOf<Pair<String, (Pipeline) -> Unit>>(
+            "box_blur" to { it.clearEffectors(); it.chain(BoxBlurKernel(10)) },
+        )
 
-        // Time only the filter application
+        tests.forEach { (name, applyFilter) ->
+            val outputSmall = "$outputDir/_${name}_small.jpg"
+            val outputLarge = "$outputDir/_${name}_large.jpg"
+
+            runEffectorTest("$name - small", inputSmall, outputSmall, applyFilter)
+            runEffectorTest("$name - large", inputLarge, outputLarge, applyFilter)
+        }
+    }
+
+    private fun runEffectorTest(name: String, input: String, output: String, applyEffector: (Pipeline) -> Unit) {
+        val pipeline = ImagePipeline { loadImage(File(input)) }
+        applyEffector(pipeline)
+
         val time = measureTime {
             pipeline.run()
         }

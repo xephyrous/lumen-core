@@ -36,3 +36,23 @@ tasks.register("clearOutput") {
         }
     }
 }
+
+tasks.register<Jar>("fatJar") {
+    group = "build"
+    description = "Assembles a fat jar including all dependencies."
+    archiveClassifier.set("with-deps")
+
+    manifest {
+        attributes["Implementation-Title"] = "Lumen Image Processing"
+        attributes["Implementation-Version"] = version
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith(".jar") }.map { zipTree(it) }
+    })
+}

@@ -8,8 +8,11 @@ import org.xephyrous.lumen.filters.GrayscaleFilter
 import org.xephyrous.lumen.filters.ImageFilter
 import org.xephyrous.lumen.filters.NegativeFilter
 import org.xephyrous.lumen.filters.SepiaFilter
+import org.xephyrous.lumen.kernels.BoxBlurKernel
+import org.xephyrous.lumen.kernels.ImageKernel
 import org.xephyrous.lumen.manipulations.ImageManipulation
 import kotlin.reflect.KClass
+import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.isSubclassOf
 
@@ -19,8 +22,10 @@ class ValidationTests {
         classesToCheck: List<KClass<*>>
     ): List<KClass<*>> {
         return classesToCheck.filter { clazz ->
-            clazz.isSubclassOf(baseClass) &&
-                    clazz.declaredFunctions.none { it.name == "run" }
+            val hasRun = clazz.declaredFunctions.any { it.name == "run" } ||
+                    clazz.companionObject?.declaredFunctions?.any { it.name == "run" } == true
+
+            clazz.isSubclassOf(baseClass) && !hasRun
         }
     }
 
@@ -39,6 +44,10 @@ class ValidationTests {
         )
 
         val manipulations: List<KClass<out ImageManipulation>> = listOf()
+
+        val kernels: List<KClass<out ImageKernel>> = listOf(
+            BoxBlurKernel::class
+        )
     }
 
     @Test
@@ -49,11 +58,12 @@ class ValidationTests {
         missingRunClasses += enforceRunMethod(ImageEffect::class, ClassRegistry.effects)
         missingRunClasses += enforceRunMethod(ImageFilter::class, ClassRegistry.filters)
         missingRunClasses += enforceRunMethod(ImageManipulation::class, ClassRegistry.manipulations)
+        missingRunClasses += enforceRunMethod(ImageKernel::class, ClassRegistry.kernels)
 
         if (missingRunClasses.isNotEmpty()) {
             fail(
                 "The following classes are missing 'run' method implementation:\n" +
-                        missingRunClasses.joinToString(separator = "\n") { it.qualifiedName ?: it.simpleName ?: "Unknown" }
+                        missingRunClasses.joinToString(separator = "\n") { " - " + (it.qualifiedName ?: it.simpleName ?: "Unknown") }
             )
         }
     }

@@ -5,6 +5,7 @@ import org.xephyrous.lumen.effects.ImageEffect
 import org.xephyrous.lumen.errors.DecoratedError
 import org.xephyrous.lumen.filters.ImageFilter
 import org.xephyrous.lumen.io.ImageLoader
+import org.xephyrous.lumen.kernels.ImageKernel
 import org.xephyrous.lumen.manipulations.ImageManipulation
 import org.xephyrous.lumen.storage.ImageBuffer
 import org.xephyrous.lumen.storage.LockType
@@ -217,7 +218,9 @@ class Pipeline {
                     data = (effector as ImageManipulation).apply(data as ImageBuffer)
                 }
 
-                ImageEffectorType.KERNEL -> TODO()
+                ImageEffectorType.KERNEL -> {
+                    data = (effector as ImageKernel).apply(data as ImageBuffer)
+                }
             }
         }
     }

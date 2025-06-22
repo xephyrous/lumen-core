@@ -41,3 +41,26 @@ fun mapCast(list: ArrayList<Pair<String, Any>>, mapType: KClass<*>, targetType: 
         else -> throw IllegalArgumentException("Unsupported mapCast type conversion : ${targetType.simpleName}")
     }
 }
+
+/**
+ * Converts a [Double] value to a target numeric type represented by [klass].
+ *
+ * Supports common numeric types: [Int], [Long], [Float], [Double], [Short], and [Byte].
+ *
+ * @param value The numeric value to convert.
+ * @param klass The target class type to cast to.
+ *
+ * @return The value cast to the appropriate type.
+ *
+ * @throws IllegalArgumentException if the provided class is unsupported.
+ */
+@Suppress("UNCHECKED_CAST")
+fun <T : Number> convertToNumber(value: Double, klass: KClass<T>): T = when (klass) {
+    Int::class    -> value.toInt() as T
+    Long::class   -> value.toLong() as T
+    Float::class  -> value.toFloat() as T
+    Double::class -> value as T
+    Short::class  -> value.toInt().toShort() as T
+    Byte::class   -> value.toInt().toByte() as T
+    else -> throw IllegalArgumentException("Unsupported number type: $klass")
+}
