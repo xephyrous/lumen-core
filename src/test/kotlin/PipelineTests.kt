@@ -29,9 +29,10 @@ class PipelineTests {
                 it.chain(BrightnessFilter(50))
                 it.chain(BrightnessFilter(-50))
             },
-            "brightness_alt" to {
-                it.clearEffectors(); it.chain(BrightnessFilter(-0.9f))
-            }
+            "brightness_alt" to { it.clearEffectors(); it.chain(BrightnessFilter(-0.9f)) },
+            "contrast_min" to { it.clearEffectors(); it.chain(ContrastFilter(-128)) },
+            "contrast_max" to { it.clearEffectors(); it.chain(ContrastFilter(128)) },
+            "contrast_alt" to { it.clearEffectors(); it.chain(ContrastFilter(0.5f)) }
         )
 
         tests.forEach { (name, applyFilter) ->
@@ -51,7 +52,7 @@ class PipelineTests {
             "negative" to { NegativeFilter.run(it) },
             "brightness_add" to { BrightnessFilter.run(it, 75) },
             "brightness_sub" to { BrightnessFilter.run(it, -75) },
-            "brightness_alt" to { BrightnessFilter.run(it, -0.9f) },
+            "brightness_alt" to { BrightnessFilter.run(it, -0.9f) }
         )
 
         tests.forEach { (name, filterLambda) ->
@@ -67,16 +68,25 @@ class PipelineTests {
     }
 
     @Test
-    fun testKernels() {
+    fun testKernelsSmall() {
         val tests = listOf<Pair<String, (Pipeline) -> Unit>>(
             "box_blur" to { it.clearEffectors(); it.chain(BoxBlurKernel(10)) },
         )
 
         tests.forEach { (name, applyFilter) ->
             val outputSmall = "$outputDir/_${name}_small.jpg"
-            val outputLarge = "$outputDir/_${name}_large.jpg"
-
             runEffectorTest("$name - small", inputSmall, outputSmall, applyFilter)
+        }
+    }
+
+    @Test
+    fun testKernelsLarge() {
+        val tests = listOf<Pair<String, (Pipeline) -> Unit>>(
+            "box_blur" to { it.clearEffectors(); it.chain(BoxBlurKernel(100)) },
+        )
+
+        tests.forEach { (name, applyFilter) ->
+            val outputLarge = "$outputDir/_${name}_large.jpg"
             runEffectorTest("$name - large", inputLarge, outputLarge, applyFilter)
         }
     }

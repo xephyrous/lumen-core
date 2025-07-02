@@ -4,9 +4,9 @@ import org.xephyrous.lumen.pipeline.ImageEffector
 import org.xephyrous.lumen.pipeline.ImageEffectorType
 import org.xephyrous.lumen.storage.ImageBuffer
 import org.xephyrous.lumen.storage.Quadruple
-import org.xephyrous.lumen.utils.components
 import org.xephyrous.lumen.utils.typeRef
 import java.awt.Color
+import kotlinx.coroutines.*
 
 abstract class ImageKernel(
     /**
@@ -94,7 +94,7 @@ abstract class ImageKernel(
      * @param weightedColors List of weighted RGBA colors.
      * @return The combined color as a Color object.
      */
-    open fun convolve(weightedColors: List<Quadruple<Float, Float, Float, Float>>): Color {
+    open fun convolve(weightedColors: List<Quadruple<Float, Float, Float, Float>>): Int {
         var r = 0f
         var g = 0f
         var b = 0f
@@ -107,12 +107,12 @@ abstract class ImageKernel(
             a += wc.fourth
         }
 
-        return Color(
-            r.coerceIn(0f, 255f).toInt(),
-            g.coerceIn(0f, 255f).toInt(),
-            b.coerceIn(0f, 255f).toInt(),
-            a.coerceIn(0f, 255f).toInt()
-        )
+        val ri = r.coerceIn(0f, 255f).toInt()
+        val gi = g.coerceIn(0f, 255f).toInt()
+        val bi = b.coerceIn(0f, 255f).toInt()
+        val ai = a.coerceIn(0f, 255f).toInt()
+
+        return (ai shl 24) or (ri shl 16) or (gi shl 8) or bi
     }
 
     /**
@@ -136,39 +136,64 @@ abstract class ImageKernel(
         val kCenterX = kWidth / 2
 
         val resultPixels = IntArray(data.width * data.height)
-        val output = ImageBuffer(data.width, data.height, resultPixels, data.extension)
 
-        for (y in 0 until data.height) {
-            for (x in 0 until data.width) {
-                val weightedColors = mutableListOf<Quadruple<Float, Float, Float, Float>>()
+        runBlocking {
+            coroutineScope {
+                (0 until data.height).map { y ->
+                    launch(Dispatchers.Default) {
+                        for (x in 0 until data.width) {
+                            var r = 0f
+                            var g = 0f
+                            var b = 0f
+                            var a = 0f
 
-                for (ky in 0 until kHeight) {
-                    for (kx in 0 until kWidth) {
-                        val dx = x + kx - kCenterX
-                        val dy = y + ky - kCenterY
+                            for (ky in 0 until kHeight) {
+                                val dy = y + ky - kCenterY
+                                if (dy !in 0 until data.height) continue
 
-                        if (dx in 0 until data.width && dy in 0 until data.height) {
-                            val color = preprocessColor(data.getColor(dx, dy), dx, dy, kx, ky)
-                            val weight = preprocessWeight(kernelValues[ky][kx], dx, dy, kx, ky)
+                                for (kx in 0 until kWidth) {
+                                    val dx = x + kx - kCenterX
+                                    if (dx !in 0 until data.width) continue
 
-                            weightedColors.add(
-                                Quadruple(
-                                    color.red * weight,
-                                    color.green * weight,
-                                    color.blue * weight,
-                                    color.alpha * weight
-                                )
+                                    val pixel = data.getPixel(dx, dy)
+                                    var pr = (pixel shr 16) and 0xFF
+                                    var pg = (pixel shr 8) and 0xFF
+                                    var pb = pixel and 0xFF
+                                    var pa = (pixel ushr 24) and 0xFF
+
+                                    val preColor = preprocessColor(Color(pr, pg, pb, pa), dx, dy, kx, ky)
+                                    pr = preColor.red
+                                    pg = preColor.green
+                                    pb = preColor.blue
+                                    pa = preColor.alpha
+
+                                    val weight = preprocessWeight(kernelValues[ky][kx], dx, dy, kx, ky)
+
+                                    r += pr * weight
+                                    g += pg * weight
+                                    b += pb * weight
+                                    a += pa * weight
+                                }
+                            }
+
+                            val outColor = postprocessColor(
+                                r.toInt().coerceIn(0, 255),
+                                g.toInt().coerceIn(0, 255),
+                                b.toInt().coerceIn(0, 255),
+                                a.toInt().coerceIn(0, 255),
+                                x, y
                             )
+
+                            val outArgb = (outColor.alpha shl 24) or (outColor.red shl 16) or (outColor.green shl 8) or outColor.blue
+                            data.setPixel(x, y, outArgb)
                         }
                     }
-                }
-
-                val outColor = convolve(weightedColors)
-                val (r, g, b, a) = outColor.components()
-                data.setColor(x, y, postprocessColor(r, g, b, a, x, y))
+                }.joinAll()
             }
         }
 
         return data
     }
+
+
 }

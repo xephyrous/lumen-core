@@ -45,9 +45,9 @@ class GridCutter(private var gridX: Int, private var gridY: Int) : ImageCutter()
 
     companion object {
         /**
-         * Standalone runner function for [org.xephyrous.lumen.cutters.GridCutter]
+         * Standalone runner function for [GridCutter]
          *
-         * @see [org.xephyrous.lumen.cutters.GridCutter.apply]
+         * @see [GridCutter.apply]
          * @param image The image to cut
          */
         fun run(image: BufferedImage, gridX: Int, gridY: Int) : ArrayList<Mask> {

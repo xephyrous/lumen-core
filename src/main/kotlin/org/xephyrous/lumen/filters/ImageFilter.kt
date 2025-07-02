@@ -5,7 +5,6 @@ import org.xephyrous.lumen.pipeline.ImageEffector
 import org.xephyrous.lumen.pipeline.ImageEffectorType
 import org.xephyrous.lumen.utils.typeRef
 import java.awt.Color
-import kotlin.reflect.KClass
 
 /**
  * Applies a filter to an image, modifying pixel values individually
