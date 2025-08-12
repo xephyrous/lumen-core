@@ -5,7 +5,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 class GrayscaleFilter : ImageFilter() {
-    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int): Color {
+    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int, x: Int, y: Int): Color {
         val avg = ((red + blue + green) / 3).toInt().coerceAtMost(255)
         return Color(avg, avg, avg)
     }
@@ -21,6 +21,6 @@ class GrayscaleFilter : ImageFilter() {
         fun run(image: BufferedImage) : BufferedImage {
             val instance = GrayscaleFilter()
             return instance.apply(ImageLoader.loadImage(image)).toBufferedImage()
+        }
     }
-}
 }

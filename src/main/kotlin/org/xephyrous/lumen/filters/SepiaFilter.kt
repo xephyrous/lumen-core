@@ -5,7 +5,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 class SepiaFilter : ImageFilter() {
-    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int): Color {
+    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int, x: Int, y: Int): Color {
         return Color(
             ((red * .393) + (green * .769) + (blue * .189)).toInt().coerceIn(0, 255),
             ((red * .349) + (green * .686) + (blue * .168)).toInt().coerceIn(0, 255),

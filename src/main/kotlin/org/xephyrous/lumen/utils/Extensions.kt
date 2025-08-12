@@ -1,7 +1,10 @@
 package org.xephyrous.lumen.utils
 
+import org.xephyrous.lumen.storage.ImageBuffer
 import org.xephyrous.lumen.storage.Quadruple
 import java.awt.Color
+import java.awt.Image
+import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 
 /**
@@ -25,7 +28,7 @@ fun Color.components(): Quadruple<Int, Int, Int, Int> {
  *
  * @return The converted color.
  */
-fun Quadruple<Float, Float, Float, Float>.toColor() : Color {
+fun Quadruple<Float, Float, Float, Float>.toColor(): Color {
     return Color(
         this.first.roundToInt().coerceIn(0, 255),
         this.second.roundToInt().coerceIn(0, 255),
@@ -67,4 +70,48 @@ inline fun <reified T : Number> List<Quadruple<out Number, out Number, out Numbe
         convertToNumber(bSum / size, T::class),
         convertToNumber(aSum / size, T::class)
     )
+}
+
+/**
+ * Retrieves the red component of a color represented as an integer
+ *
+ * Assumes the color is stored using the ARGB byte order
+ *
+ * @return The red value of the color, or the third byte
+ */
+fun Int.getRed(): Int {
+    return this.shr(16).and(0xFF)
+}
+
+/**
+ * Retrieves the green component of a color represented as an integer
+ *
+ * Assumes the color is stored using the ARGB byte order
+ *
+ * @return The green value of the color, or the third byte
+ */
+fun Int.getGreen(): Int {
+    return this.shr(8).and(0xFF)
+}
+
+/**
+ * Retrieves the blue component of a color represented as an integer
+ *
+ * Assumes the color is stored using the ARGB byte order
+ *
+ * @return The blue value of the color, or the third byte
+ */
+fun Int.getBlue(): Int {
+    return this.and(0xFF)
+}
+
+/**
+ * Retrieves the alpha component of a color represented as an integer
+ *
+ * Assumes the color is stored using the ARGB byte order
+ *
+ * @return The alpha value of the color, or the third byte
+ */
+fun Int.getAlpha(): Int {
+    return this.shr(24).and(0xFF)
 }

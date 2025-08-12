@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage
 class ContrastFilter(val value: Int) : ImageFilter() {
     constructor(value: Float) : this((128 * value).toInt())
 
-    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int): Color {
+    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int, x: Int, y: Int): Color {
         val correctionFactor: Float = (259 * (value + 255)) / (255 * (259 - value)).toFloat()
         return Color(
             (correctionFactor * (red - 128) + 128).toInt().coerceIn(0, 255),

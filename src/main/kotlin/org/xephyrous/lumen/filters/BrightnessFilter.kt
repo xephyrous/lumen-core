@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage
 class BrightnessFilter(val value: Int) : ImageFilter() {
     constructor(value: Float) : this((255 * value).toInt())
 
-    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int): Color {
+    override fun pixelMod(red: Int, green: Int, blue: Int, alpha: Int, x: Int, y: Int): Color {
         return Color(
             (red + value).coerceIn(0, 255),
             (green + value).coerceIn(0, 255),

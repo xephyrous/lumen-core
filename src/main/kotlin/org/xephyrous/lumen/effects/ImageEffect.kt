@@ -9,7 +9,6 @@ import org.xephyrous.lumen.utils.typeRef
  * TODO : Document ImageEffect
  */
 abstract class ImageEffect : ImageEffector<ImageBuffer, ImageBuffer>(typeRef()) {
-    override var type: ImageEffectorType
-        get() = ImageEffectorType.EFFECT
-        set(_) {}
+    override var type: ImageEffectorType = ImageEffectorType.EFFECT
+    abstract override fun apply(data: ImageBuffer): ImageBuffer
 }
