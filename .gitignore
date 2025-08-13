@@ -46,3 +46,6 @@ bin/
 
 ### Generated ###
 src/test/output
+
+native
+native/*

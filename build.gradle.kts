@@ -17,6 +17,12 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    systemProperty("java.library.path", file("native").absolutePath)
+
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+    }
 }
 
 kotlin {
